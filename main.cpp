@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <queue>
 
 using namespace std;
@@ -11,53 +12,29 @@ struct Nod
 {
     Nod()
     {
-        start  = false;
-        ending = false;
-        links  = map<char, vector<int> >();
+        start     = false;
+        ending    = false;
+        links     = unordered_map<char, vector<int> >();
         nextNodes = vector<pair<int, char> >();
     }
 
-    bool                     start;
-    bool                     ending;
-    map<char, vector<int> >  links;
-    vector<pair<int, char> > nextNodes;
+    bool                               start;
+    bool                               ending;
+    unordered_map<char, vector<int> >  links;
+    vector<pair<int, char> >           nextNodes;
 };
 
-bool ValidWord(string       word,
-               int          letterIndex,
+bool ValidWord(string&      word,
                int          crtNode,
-               vector<Nod>& automat)
+               vector<Nod>& automat,
+               int          nodeCount)
 {
-    // inainte sa realizez ca se poate face si in complexitate polinomiala
-    /*
-    bool result = false;
-
-    if (letterIndex >= word.size())
-    {
-        if (automat[crtNode].ending)
-            return true;
-        return false;
-    }
-
-    char c = word[letterIndex];
-
-    if (automat[crtNode].links.find(c) != automat[crtNode].links.end())
-    {
-        for (int i = 0; i < automat[crtNode].links[c].size(); i++)
-            result = result || ValidWord(word,
-                                         letterIndex + 1,
-                                         automat[crtNode].links[c][i],
-                                         automat);
-    }
-    */
-
-    // primul e indexul caracterului, al doilea e nodul
     queue<pair<int, int> > indexQueue;
-    map<pair<int, int>, bool> beenThere;
+    vector<vector<bool> > beenThere(word.size() + 1, vector<bool>(nodeCount + 1, false));
     bool result = false;
 
     indexQueue.push(make_pair(0, crtNode));
-    beenThere[make_pair(0, crtNode)] = true;
+    beenThere[0][crtNode] = true;
 
     while (!(indexQueue.empty() || result))
     {
@@ -78,9 +55,9 @@ bool ValidWord(string       word,
             for (int i = 0; i < automat[nod].links[c].size(); i++)
             {
                 pair<int, int> newPair = make_pair(strIx + 1, automat[nod].links[c][i]);
-                if (beenThere.find(newPair) == beenThere.end())
+                if (!beenThere[newPair.first][newPair.second])
                 {
-                    beenThere[newPair] = true;
+                    beenThere[newPair.first][newPair.second] = true;
                     indexQueue.push(newPair);
                 }
             }
@@ -90,7 +67,8 @@ bool ValidWord(string       word,
     return result;
 }
 
-void BFS(vector<Nod>& automat, int q0)
+void BFS(vector<Nod>& automat,
+         int          q0)
 {
     queue<pair<int, string> > crtWords;
     map<pair<int, string>, bool> beenThere;
@@ -165,9 +143,9 @@ int main()
     cout << endl;
 
     cout << (ValidWord(str,
-                       0,
                        q0,
-                       automat) ? "Da man, e valid cuvantul" : "Nope, cuvantul nu este valid..")
+                       automat,
+                       n) ? "Da man, e valid cuvantul" : "Nope, cuvantul nu este valid..")
          << endl;
 
 
